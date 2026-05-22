@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri, useAuthRequest, useAutoDiscovery } from 'expo-auth-session';
+import * as SecureStore from 'expo-secure-store';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
+
+WebBrowser.maybeCompleteAuthSession();
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -10,59 +15,56 @@ type Props = {
 };
 
 const LoginScreen = ({ navigation }: Props) => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const KEYCLOAK_URL = 'http://192.168.X.X:9080/realms/student-realm';
 
-    const handleLogin = () => {
-        // Egyelőre egy vak teszt: ha beírt valamit, átengedjük a Pomodoróra
-        if (email.trim() === '' || password.trim() === '') {
-            Alert.alert('Hiba', 'Kérlek töltsd ki az összes mezőt!');
-            return;
+    const discovery = useAutoDiscovery(KEYCLOAK_URL);
+
+    const [request, response, promptAsync] = useAuthRequest(
+        {
+            clientId: 'student-mobile-client',
+            redirectUri: makeRedirectUri({
+                scheme: 'exp'
+            }),
+            scopes: ['openid', 'profile'],
+        },
+        discovery
+    );
+
+    useEffect(() => {
+        if (response?.type === 'success') {
+            const { code } = response.params;
+
+            SecureStore.setItemAsync('auth_code', code)
+                .then(() => {
+                    navigation.replace('Pomodoro');
+                })
+                .catch(err => console.log('Hiba a mentésnél:', err));
+
+        } else if (response?.type === 'error') {
+            Alert.alert('Hiba', 'Nem sikerült bejelentkezni a Keycloak rendszerébe!');
         }
-
-        // Ha otthon bejelentkezel, egyből átugrik a Pomodoro főoldalra
-        navigation.replace('Pomodoro');
-    };
+    }, [response]);
 
     return (
         <View style={styles.container}>
             <View style={styles.headerContainer}>
                 <Text style={styles.logo}>🎓</Text>
                 <Text style={styles.title}>Student Productivity</Text>
-                <Text style={styles.subtitle}>Jelentkezz be a fejlődésed követéséhez</Text>
+                <Text style={styles.subtitle}>Egyetemi beléptető rendszer</Text>
             </View>
 
             <View style={styles.formContainer}>
-                {/* Email input */}
-                <TextInput
-                    style={styles.input}
-                    placeholder="E-mail cím"
-                    placeholderTextColor="#999"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                />
-
-                {/* Jelszó input */}
-                <TextInput
-                    style={styles.input}
-                    placeholder="Jelszó"
-                    placeholderTextColor="#999"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry // Ez teszi pöttyökké a jelszót
-                />
-
-                {/* Bejelentkezés gomb */}
-                <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                    <Text style={styles.buttonText}>Bejelentkezés</Text>
+                <TouchableOpacity
+                    style={[styles.button, !request && styles.buttonDisabled]}
+                    disabled={!request}
+                    onPress={() => promptAsync()}
+                >
+                    <Text style={styles.buttonText}>Bejelentkezés Keycloak-kal</Text>
                 </TouchableOpacity>
 
-                {/* Regisztráció link (egyelőre csak dizájn) */}
-                <TouchableOpacity style={styles.registerLink}>
-                    <Text style={styles.registerText}>Még nincs fiókod? Regisztrálj!</Text>
-                </TouchableOpacity>
+                {!discovery && (
+                    <ActivityIndicator size="small" color="#4A90E2" style={{ marginTop: 20 }} />
+                )}
             </View>
         </View>
     );
@@ -97,42 +99,29 @@ const styles = StyleSheet.create({
     formContainer: {
         backgroundColor: '#fff',
         borderRadius: 20,
-        padding: 20,
+        padding: 40,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 10,
         elevation: 5,
-    },
-    input: {
-        backgroundColor: '#F5F8FA',
-        padding: 15,
-        borderRadius: 10,
-        marginBottom: 15,
-        fontSize: 16,
-        color: '#333',
-        borderWidth: 1,
-        borderColor: '#E1E8ED',
+        alignItems: 'center',
     },
     button: {
         backgroundColor: '#4A90E2',
-        padding: 15,
+        paddingVertical: 15,
+        paddingHorizontal: 30,
         borderRadius: 10,
+        width: '100%',
         alignItems: 'center',
-        marginTop: 10,
+    },
+    buttonDisabled: {
+        backgroundColor: '#A0C4E8',
     },
     buttonText: {
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
-    },
-    registerLink: {
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    registerText: {
-        color: '#4A90E2',
-        fontSize: 14,
     },
 });
 
