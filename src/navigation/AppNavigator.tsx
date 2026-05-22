@@ -1,11 +1,11 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import LoginScreen from '../screens/LoginScreen';
 import PomodoroScreen from '../screens/PomodoroScreen';
 
-// Definiáljuk a navigációs listánkat (milyen oldalak léteznek az appban)
 export type RootStackParamList = {
+    Login: undefined;
     Pomodoro: undefined;
-    // Ide jön majd később pl: Login: undefined; vagy TaskDetails: { taskId: string };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -13,22 +13,30 @@ const Stack = createStackNavigator<RootStackParamList>();
 const AppNavigator = () => {
     return (
         <Stack.Navigator
-            initialRouteName="Pomodoro"
+            initialRouteName="Login" // <-- Átállítottuk! Mostantól a Login az első oldal!
             screenOptions={{
                 headerStyle: {
-                    backgroundColor: '#4A90E2', // Szép kék fejléc, mint a weben
+                    backgroundColor: '#4A90E2',
                 },
-                headerTintColor: '#fff', // Fehér szövegszín a fejlécben
+                headerTintColor: '#fff',
                 headerTitleStyle: {
                     fontWeight: 'bold',
                 },
-                cardStyle: { backgroundColor: '#EBF4FA' } // Egységes háttérszín minden oldalnak
+                cardStyle: { backgroundColor: '#EBF4FA' }
             }}
         >
+            {/* Login képernyő - a fejlécet elrejtjük (headerShown: false) */}
+            <Stack.Screen
+                name="Login"
+                component={LoginScreen}
+                options={{ headerShown: false }}
+            />
+
+            {/* Pomodoro képernyő */}
             <Stack.Screen
                 name="Pomodoro"
                 component={PomodoroScreen}
-                options={{ title: 'Pomodoro Időzítő' }}
+                options={{ title: 'Pomodoro Időzítő', headerLeft: () => null }} // headerLeft: null elrejti a vissza gombot, mert bejelentkezés után ne lehessen visszamenni a loginra a gombbal
             />
         </Stack.Navigator>
     );

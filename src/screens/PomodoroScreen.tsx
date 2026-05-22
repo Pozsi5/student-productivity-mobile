@@ -7,12 +7,10 @@ const PomodoroScreen = () => {
             <Text style={styles.title}>Student Productivity</Text>
             <Text style={styles.subtitle}>Mobil Pomodoro Időzítő</Text>
 
-            {/* Egy szép kék kör az időzítőnek */}
             <View style={styles.timerCircle}>
                 <Text style={styles.timerText}>25:00</Text>
             </View>
 
-            {/* Indító gomb */}
             <TouchableOpacity style={styles.button}>
                 <Text style={styles.buttonText}>Fókusz indítása</Text>
             </TouchableOpacity>
@@ -23,7 +21,7 @@ const PomodoroScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#EBF4FA', // Ugyanaz a világoskék, mint a weben
+        backgroundColor: '#EBF4FA',
         alignItems: 'center',
         justifyContent: 'center',
     },
