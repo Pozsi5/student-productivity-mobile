@@ -13,7 +13,7 @@ const Stack = createStackNavigator<RootStackParamList>();
 const AppNavigator = () => {
     return (
         <Stack.Navigator
-            initialRouteName="Login" // <-- Átállítottuk! Mostantól a Login az első oldal!
+            initialRouteName="Login"
             screenOptions={{
                 headerStyle: {
                     backgroundColor: '#4A90E2',
@@ -25,18 +25,16 @@ const AppNavigator = () => {
                 cardStyle: { backgroundColor: '#EBF4FA' }
             }}
         >
-            {/* Login képernyő - a fejlécet elrejtjük (headerShown: false) */}
             <Stack.Screen
                 name="Login"
                 component={LoginScreen}
                 options={{ headerShown: false }}
             />
 
-            {/* Pomodoro képernyő */}
             <Stack.Screen
                 name="Pomodoro"
                 component={PomodoroScreen}
-                options={{ title: 'Pomodoro Időzítő', headerLeft: () => null }} // headerLeft: null elrejti a vissza gombot, mert bejelentkezés után ne lehessen visszamenni a loginra a gombbal
+                options={{ title: 'Pomodoro Időzítő', headerLeft: () => null }}
             />
         </Stack.Navigator>
     );
